@@ -12,20 +12,27 @@ StudyMatch is a web application that helps students find other students who are 
 
 ### Elevator pitch
 
-Finding people to study with shouldn't be harder than studying itself. StudyMatch helps students connect with classmates that are studying the same subjects. Through StudyMatch, studetns can create sessions, find sessions for any courses they are struggling with, and communicate with their study groups to have accountability that helps them stay focused on their academic goals. Whether preparing for exams or going through difficult homework, StudyMatch will provide a service that makes finding a study buddy easier.
+Finding people to study with shouldn't be harder than studying itself. StudyMatch helps students connect with classmates that are studying the same subjects. Through StudyMatch, students can create sessions, find sessions for any courses they are struggling with, and communicate with their study groups to have accountability that helps them stay focused on their academic goals. Whether preparing for exams or going through difficult homework, StudyMatch will provide a service that makes finding a study buddy easier.
 
 ### Design
 
-![Design image](placeholder.png)
+The following images show the main pages planned for StudyMatch.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+#### Login Page
 
-```mermaid
-sequenceDiagram
-    actor You
-    actor Website
-    You->>Website: Replace this with your design
-```
+Users can log in to their StudyMatch account or create a new account.
+![StudyMatch Login](login.png)
+
+#### Dashboard
+
+The dashboard shows available study sessions and lets users create or join sessions.
+![StudyMatch Dashboard](dashboard.png)
+
+#### Study Session
+
+The study session shows the course information, members, and a chat box where members can communicate in real-time.
+![StudyMatch Study Session](study-session.png)
+
 
 ### Key features
 
@@ -35,18 +42,20 @@ sequenceDiagram
 - Users can browse study sessions they are looking for.
 - Users can join available study sessions.
 - Users can communicate with other users of their study group.
-- Users can see live upadates when students create and join study sessions.
+- Users can see live updates when students create and join study sessions.
 
 ### Technologies
 
 I am going to use the required technologies in the following ways.
 
-- **HTML** - Description here
-- **CSS** - Description here
-- **React** - Description here
-- **Service** - Description here
-- **DB/Login** - Description here
-- **WebSocket** - Description here
+- **HTML** - I will use HTML to build a structure of the website, such as the login page, study sessions, and chats.
+- **CSS** - I will use CSS to make my web application look more stylish and easy to understand how to use 
+- **React** - I will use React to build reusable components for login, course lists, study sessions, and study groups. React will also handle page routing and update UI when users interact with the application.
+- **Service** - I will use a Node.js/Express backend service for handling users' accounts, logging in/out, creating/joining study sessions. Also I will call a third-party API to show motivational quotes.
+- **DB/Login** - I will store user accounts, courses, study sessions, and study group information in a database. Users will be able to safely register and log in/out.
+- **WebSocket** - I will use WebSocket to send and receive real-time updates when users create or join sessions and to support communication between members of a study group.
+
+Third-party API: https://api.quotable.io/random
 
 ## 🚀 Specification Deliverable
 
@@ -55,12 +64,12 @@ I am going to use the required technologies in the following ways.
 
 For this deliverable I did the following. I checked the box `[x]` and added a description for things I completed.
 
-- [ ] I completed the prerequisites for this deliverable (Git commit requirement)
-- [ ] Proper use of Markdown
-- [ ] A concise and compelling elevator pitch
-- [ ] Description of key features
-- [ ] Description of how you will use each technology including your 3rd party API and use of WebSocket
-- [ ] One or more rough sketches of your application. Images must be embedded in this file using Markdown image references.
+- [ x] I completed the prerequisites for this deliverable (Git commit requirement)
+- [ x] Proper use of Markdown
+- [ x] A concise and compelling elevator pitch
+- [ x] Description of key features
+- [ x] Description of how you will use each technology including your 3rd party API and use of WebSocket
+- [ x] One or more rough sketches of your application. Images must be embedded in this file using Markdown image references.
 
 ## 🚀 AWS deliverable
 

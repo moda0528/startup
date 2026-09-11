@@ -29,9 +29,13 @@ sequenceDiagram
 
 ### Key features
 
-- Describe your key feature
-- Describe your key feature
-- Describe your key feature
+- Users can create an account and log in.
+- Users can add the courses they are currently taking.
+- Users can open study sessions for specific courses.
+- Users can browse study sessions they are looking for.
+- Users can join available study sessions.
+- Users can communicate with other users of their study group.
+- Users can see live upadates when students create and join study sessions.
 
 ### Technologies
 

@@ -64,12 +64,12 @@ Third-party API: https://api.quotable.io/random
 
 For this deliverable I did the following. I checked the box `[x]` and added a description for things I completed.
 
-- [ x] I completed the prerequisites for this deliverable (Git commit requirement)
-- [ x] Proper use of Markdown
-- [ x] A concise and compelling elevator pitch
-- [ x] Description of key features
-- [ x] Description of how you will use each technology including your 3rd party API and use of WebSocket
-- [ x] One or more rough sketches of your application. Images must be embedded in this file using Markdown image references.
+- [x] I completed the prerequisites for this deliverable (Git commit requirement)
+- [x] Proper use of Markdown
+- [x] A concise and compelling elevator pitch
+- [x] Description of key features
+- [x] Description of how you will use each technology including your 3rd party API and use of WebSocket
+- [x] One or more rough sketches of your application. Images must be embedded in this file using Markdown image references.
 
 ## 🚀 AWS deliverable
 

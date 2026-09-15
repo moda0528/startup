@@ -75,9 +75,9 @@ For this deliverable I did the following. I checked the box `[x]` and added a de
 
 For this deliverable I did the following. I checked the box `[x]` and added a description for things I completed.
 
-- [ ] **Rented EC2 server** - I did not complete this part of the deliverable.
-- [ ] **Leased domain name** - I did not complete this part of the deliverable.
-- [ ] **Server accessible** from my domain: [https://yourdomainnamehere.click](https://yourdomainnamehere.click) - I did not complete this part of the deliverable.
+- [x] **Rented EC2 server** - I created and configured an AWS EC2 server.
+- [x] **Leased domain name** - I leased kyungju.click and configured it using AWS Route 53.
+- [x] **Server accessible** from my domain: [https://startup.kyungju.click] - My startup server is accessible through my domain using HTTPS.
 
 ## 🚀 HTML deliverable
 

@@ -33,7 +33,20 @@ Interesting things I have learned about AWS
 
 ## HTML
 
-Interesting things I have learned about HTML
+- `index.html` is usually the default page of a website.
+- HTML elements are used to structure a webpage.
+- `<header>` is used for content at the top of a page.
+- `<main>` contains the main content.
+- `<section>` groups related content.
+- `<footer>` contains content at the bottom.
+- `<div>` is used to group content.
+- `<span>` is used for inline content.
+- Block elements usually take their own line or area.
+- Inline elements stay within the current line.
+- `<a>` is used to create hyperlinks.
+- `<img>` is used to display images.
+- `<ul>` and `<li>` are used to create unordered lists.
+- `<table>`, `<tr>`, `<th>`, and `<td>` are used to create tables.
 
 ## React
 

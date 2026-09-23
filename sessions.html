@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StudyMatch</title>
+    </head>
+
+    <body>
+        <header>
+            <h1>StudyMatch</h1>
+
+            <nav>
+                <menu>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="sessions.html">Sessions</a></li>
+                    <li><a href="chat.html">Chat</a></li>
+                </menu>
+            </nav>
+            <hr />
+        </header>
+        <main>
+            <section>
+                <h3>Create a Study Session</h3>
+                <form>
+                    <div>
+                        <label for="course">Course:</label>
+                        <select id="course">
+                            <option>CS 235 - Data Structures</option>
+                            <option>CS 260 - Web Programming</option>
+                            <option>MATH 112 - Calculus</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="date">Date:</label>
+                        <input type="date" id="date" />
+                    </div>
+                    <div>
+                        <label for="time">Time:</label>
+                        <input type="time" id="time" />
+                    </div>
+                    <div>
+                        <label for="location">Location:</label>
+                        <input
+                            type="text"
+                            id="location"
+                            placeholder="Ex) Library, Talmage Building, etc."
+                        />
+                    </div>
+                    <div>
+                        <label for="max-students">Max Students:</label>
+                        <select id="max-students">
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                            <option>6</option>
+                            <option>7</option>
+                            <option>8</option>
+                            <option>9</option>
+                            <option>10</option>
+                        </select>
+                    </div>
+                    <button type="submit">Create Session</button>
+                </form>
+  
+            </section>
+
+            <section>
+                <h3>My Study Sessions</h3>
+
+                <table>
+                    <tr>
+                        <th>Course</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Time</th>
+                        <th>Students</th>
+                        <th>Action</th>
+                    </tr>
+                    <tr>
+                        <td>CS 235</td>
+                        <td>September 25</td>
+                        <td>18:00</td>
+                        <td>Library</td>
+                        <td>3/5</td>
+                        <td><button>Leave</button></td>
+                    </tr>                    
+                </table>
+            </section>
+        </main>
+
+        <footer>
+            <hr />
+            <span>Kyungju Jo</span>
+            <br />
+            <a href="https://github.com/moda0528/startup">GitHub</a>
+        </footer>
+    </body>
+
+</html>

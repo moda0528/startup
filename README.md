@@ -83,16 +83,16 @@ For this deliverable I did the following. I checked the box `[x]` and added a de
 
 For this deliverable I did the following. I checked the box `[x]` and added a description for things I completed.
 
-- [ ] I completed the prerequisites for this deliverable (Simon deployed, GitHub link, Git commits)
-- [ ] **HTML pages** - I did not complete this part of the deliverable.
-- [ ] **Proper HTML element usage** - I did not complete this part of the deliverable.
-- [ ] **Links** - I did not complete this part of the deliverable.
-- [ ] **Text** - I did not complete this part of the deliverable.
-- [ ] **3rd party API placeholder** - I did not complete this part of the deliverable.
-- [ ] **Images** - I did not complete this part of the deliverable.
-- [ ] **Login placeholder** - I did not complete this part of the deliverable.
-- [ ] **DB data placeholder** - I did not complete this part of the deliverable.
-- [ ] **WebSocket placeholder** - I did not complete this part of the deliverable.
+- [x] I completed the prerequisites for this deliverable (Simon deployed, GitHub link, Git commits)
+- [x] **HTML pages** - I created four pages for StudyMatch: `index.html`, `dashboard.html`, `sessions.html`, and `chat.html`.
+- [x] **Proper HTML element usage** - I used HTML elements including header, nav, main, footer, section, form, input, select, option, table, and button.
+- [x] **Links** - I added navigation links between the Home, Dashboard, Sessions, and Chat pages.
+- [x] **Text** - I added text describing StudyMatch, courses, study sessions, and study group chats.
+- [x] **3rd party API placeholder** - I added a placeholder on the dashboard for motivational quotes that will eventually come from a third-party API.
+- [x] **Images** - I added a StudyMatch image to the home page.
+- [x] **Login placeholder** - I added email and password inputs, login and account creation buttons, and a username display placeholder.
+- [x] **DB data placeholder** - I added example study session data that will eventually be stored and retrieved from the database.
+- [x] **WebSocket placeholder** - I added a study group chat with example realtime messages and online users.
 
 ## 🚀 CSS deliverable
 

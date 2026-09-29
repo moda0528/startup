@@ -1,0 +1,15 @@
+body {
+  color: red;
+}
+p {
+  color: green;
+}
+span {
+  color: blue;
+}
+h1 {
+  border-bottom: thin black solid;
+}
+button:hover {
+    background: blue;
+}

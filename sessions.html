@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StudyMatch</title>
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
     </head>
 
@@ -24,7 +28,7 @@
         <main>
             <section>
                 <h3>Create a Study Session</h3>
-                <form>
+                <form class="session-form">
                     <div>
                         <label for="course">Course:</label>
                         <select id="course">
@@ -63,7 +67,7 @@
                             <option>10</option>
                         </select>
                     </div>
-                    <button type="submit">Create Session</button>
+                    <button type="submit" class="btn btn-primary">Create Session</button>
                 </form>
   
             </section>
@@ -75,8 +79,8 @@
                     <tr>
                         <th>Course</th>
                         <th>Date</th>
-                        <th>Location</th>
                         <th>Time</th>
+                        <th>Location</th>
                         <th>Students</th>
                         <th>Action</th>
                     </tr>
@@ -86,7 +90,7 @@
                         <td>18:00</td>
                         <td>Library</td>
                         <td>3/5</td>
-                        <td><button>Leave</button></td>
+                        <td><button class="btn btn-danger">Leave</button></td>
                     </tr>                    
                 </table>
             </section>

@@ -100,6 +100,10 @@ table {
     background-color: white;
 }
 
+section {
+    overflow-x: auto;
+}
+
 th,
 td {
     padding: 15px;
@@ -124,6 +128,27 @@ section {
     padding: 20px;
     background-color: white;
     border-radius: 10px;
+}
+
+.session-form {
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+.session-form div {
+    margin-bottom: 15px;
+}
+
+.session-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.session-form input,
+.session-form select {
+    width: 100%;
+    padding: 10px;
 }
 
 footer {

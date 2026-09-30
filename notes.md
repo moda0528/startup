@@ -2,8 +2,8 @@
 
 This file represents what I have learned about web programming.
 
-- [My startup](https://startup.cs260.click)
-- [My simon](https://simon.cs260.click)
+- [My startup](https://startup.kyungju.click)
+- [My simon](https://simon.kyungju.click)
 ## StudyMatch
 
 StudyMatch is a web application that helps students find other students
@@ -47,6 +47,20 @@ Interesting things I have learned about AWS
 - `<img>` is used to display images.
 - `<ul>` and `<li>` are used to create unordered lists.
 - `<table>`, `<tr>`, `<th>`, and `<td>` are used to create tables.
+
+## CSS
+
+- CSS is used to style HTML elements.
+- Padding is space inside an element, while margin is space outside.
+- Flexbox is useful for responsive layouts.
+- `justify-content` controls alignment along the main axis.
+- `align-items` controls alignment across the other axis.
+- `flex-wrap: wrap` lets elements move to another line when there is not enough space.
+- Media queries such as `@media (max-width: 600px)` can change styling for smaller screens.
+- Bootstrap is a CSS framework that provides prewritten styles and components.
+- CSS selectors can target elements, classes, IDs, and states such as `:hover`.
+- Browser DevTools can be used to inspect and temporarily change CSS.
+- `overflow-x: auto` can prevent wide elements such as tables from overflowing on small screens.
 
 ## React
 

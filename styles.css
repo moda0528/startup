@@ -151,6 +151,39 @@ section {
     padding: 10px;
 }
 
+.messages {
+    max-width: 700px;
+    margin: 20px auto;
+}
+
+.messages p {
+    background-color: #e9ecef;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.messages .my-message {
+    background-color: #dbeafe;
+}
+
+.chat-form {
+    max-width: 700px;
+    margin: 20px auto;
+
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.chat-form input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
 footer {
     padding: 20px;
 }
@@ -177,4 +210,9 @@ footer {
     .login-form {
         width: 100%;
     }
+
+  .chat-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

@@ -21,6 +21,10 @@ header {
     align-items: center;
 }
 
+header nav {
+    margin-left: auto;
+}
+
 nav menu {
     display: flex;
     gap: 20px;
@@ -197,6 +201,10 @@ footer {
     nav menu {
         flex-wrap: wrap;
         justify-content: center;
+    }
+
+    header nav {
+    margin-left: 0;
     }
 
     main {

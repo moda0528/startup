@@ -108,12 +108,17 @@ For this deliverable I did the following. I checked the box `[x]` and added a de
 
 ## 🚀 React part 1: Routing deliverable
 
-For this deliverable I did the following. I checked the box `[x]` and added a description for things I completed.
+For this deliverable I did the following.
 
-- [ ] I completed the prerequisites for this deliverable (Simon deployed, GitHub link, Git commits)
-- [ ] **Bundled using Vite** - I did not complete this part of the deliverable.
-- [ ] **Components** - I did not complete this part of the deliverable.
-- [ ] **Router** - I did not complete this part of the deliverable.
+- [x] I completed the prerequisites (Simon React deployed, GitHub link, Git commits).
+- [x] **Bundled using Vite** - I converted StudyMatch into a React application using Vite, built it, and deployed it to AWS.
+- [x] **Components** - I created Login, Dashboard, Sessions, and Chat React components while preserving my original CSS and Bootstrap styling.
+- [x] **Router** - I implemented React Router to navigate between all four pages without full page reloads.
+
+### Links
+- [StudyMatch](https://startup.kyungju.click)
+- [Simon React](https://simon.kyungju.click)
+- [GitHub](https://github.com/moda0528/startup)
 
 ## 🚀 React part 2: Reactivity deliverable
 

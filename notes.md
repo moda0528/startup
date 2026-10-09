@@ -64,4 +64,10 @@ Interesting things I have learned about AWS
 
 ## React
 
-Interesting things I have learned about React
+- React is a JavaScript library for building user interfaces using reusable components.
+- JSX allows us to write HTML-like code inside JavaScript.
+- `App.jsx` connects components, while `main.jsx` renders the application.
+- React Router allows navigation between pages without reloading the website.
+- Vite provides a development server (`npm run dev`) and creates production builds (`npm run build`).
+- Bootstrap and CSS can be used to style React components.
+- I converted StudyMatch and Simon from HTML/CSS into React applications and deployed them to AWS.

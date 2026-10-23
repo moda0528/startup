@@ -224,3 +224,30 @@ footer {
     align-items: stretch;
   }
 }
+/* React Part 2: interactive controls, responsive tables, status messages. */
+header { gap: 18px; flex-wrap: wrap; }
+header h1 { font-size: 1.8rem; }
+header .active { color: #0d6efd; text-decoration: underline; }
+.header-account { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.notice { max-width: 900px; margin: 16px auto 0; padding: 12px 18px; background: #e7f3ff; color: #073c74; border-radius: 8px; }
+.table-scroll { max-width: 100%; overflow-x: auto; }
+.table-scroll table { min-width: 640px; }
+.actions-cell { white-space: nowrap; }
+.welcome-section { max-width: 460px; }
+.add-course-form { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center; margin: 18px auto; }
+.add-course-form input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; min-width: 170px; }
+.course-tags { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
+.course-tag { background: #e8f0ff; border-radius: 24px; padding: 6px 10px; }
+.course-tag button { border: 0; background: transparent; color: #525f7f; font-weight: 700; cursor: pointer; }
+.member-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 24px; padding-left: 0; list-style: none; }
+.demo-note { font-size: 0.8rem; color: #657183; margin: 14px auto 0; max-width: 450px; }
+.login-form h3 { font-size: 1.25rem; margin-bottom: 16px; }
+.login-form .btn { margin-bottom: 10px; }
+.messages { max-height: 380px; overflow-y: auto; }
+.messages p { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  header { justify-content: center; }
+  .header-account { justify-content: center; }
+  .notice { margin: 12px; }
+  .add-course-form { flex-direction: column; }
+}

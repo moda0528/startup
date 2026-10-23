@@ -122,11 +122,18 @@ For this deliverable I did the following.
 
 ## 🚀 React part 2: Reactivity deliverable
 
-For this deliverable I did the following. I checked the box `[x]` and added a description for things I completed.
+For this deliverable I implemented interactive frontend behavior using React state, effects, and mocked services.
 
-- [ ] I completed the prerequisites for this deliverable (Simon deployed, GitHub link, Git commits)
-- [ ] **All functionality implemented or mocked out** - I did not complete this part of the deliverable.
-- [ ] **Hooks** - I did not complete this part of the deliverable.
+- [x] I completed the prerequisites for this deliverable (Simon React deployed, GitHub link, README and Git commits).
+- [x] **All functionality implemented or mocked out** - Users can create demo accounts, log in and log out; add and remove courses; filter, create, join, leave, and delete study sessions; and send messages in their joined study-group chats. Created sessions and messages persist in the browser's `localStorage`. Dashboard motivational quotes rotate from a mock API response list. Incoming chat replies are simulated with a timer as a WebSocket placeholder.
+- [x] **Hooks** - `useState` updates login forms, course filters, session creation, chat messages, quote rotation, and application data. `useEffect` saves browser data, dismisses status notifications, rotates quotes, and simulates chat replies; effects clean up their timers when components unmount. State and callback props connect the components.
+
+### Reactivity notes
+
+The application uses **demo-only authentication**: passwords are not saved or verified. User data, sessions, and chat messages exist only in the current browser, not in a shared backend. This functionality will be replaced during the Service, Database, and WebSocket deliverables.
+
+- [Live StudyMatch](https://startup.kyungju.click)
+- [GitHub repository](https://github.com/moda0528/startup)
 
 ## 🚀 Service deliverable
 

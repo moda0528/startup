@@ -71,3 +71,12 @@ Interesting things I have learned about AWS
 - Vite provides a development server (`npm run dev`) and creates production builds (`npm run build`).
 - Bootstrap and CSS can be used to style React components.
 - I converted StudyMatch and Simon from HTML/CSS into React applications and deployed them to AWS.
+
+### Reactivity (Part 2)
+
+- `useState` makes forms, filters, sessions, and chat update when the user interacts with the page.
+- `useEffect` can save changes to `localStorage` and set up timers with cleanup.
+- Component props pass data and callback functions between StudyMatch pages.
+- `localStorage` keeps demo accounts, study sessions, and messages after a page refresh.
+- `setInterval` can simulate incoming WebSocket chat messages until a real backend exists.
+- I mocked login, account creation, session membership, group messages, and rotating study quotes without a server.

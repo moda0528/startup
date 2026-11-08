@@ -137,9 +137,11 @@ The application uses **demo-only authentication**: passwords are not saved or ve
 
 ## 🚀 Service deliverable
 
-For this deliverable, I replaced the React-only demo data with an Express HTTP service. These items describe the implemented code; I will verify the production deployment separately.
+For this deliverable, I added a Node.js and Express backend to StudyMatch. I connected the React frontend to backend API endpoints and implemented user registration, login, logout, and password hashing with BCrypt.
 
-- [ ] **Prerequisites** - Verify Simon **Service** is deployed at [simon.kyungju.click](https://simon.kyungju.click), the GitHub link is on StudyMatch's home page, and the repository has enough genuine Git commits.
+I successfully deployed the application to AWS and tested the frontend and backend in production.
+
+- [x] **Prerequisites** - Deployed Simon Service, included the GitHub repository link on the StudyMatch home page, and maintained Git commits throughout development.
 - [x] **Node.js/Express HTTP service** - Added `service/index.js` and a separate `service/package.json`. The backend listens on port 4000 by default and accepts a command-line port argument.
 - [x] **Static middleware for frontend** - Express serves the production Vite build using `express.static('public')` and returns `index.html` for React Router URLs.
 - [x] **Calls to third-party endpoints** - The Dashboard uses browser `fetch` to request a real motivational quote from the DummyJSON `/quotes/random` API, with error handling and a New Quote button.
@@ -149,6 +151,12 @@ For this deliverable, I replaced the React-only demo data with an Express HTTP s
 - [x] **BCrypt hashing** - The backend calls `bcrypt.hash(password, 10)` when creating an account and `bcrypt.compare` at login; plaintext passwords aren't saved as account records.
 
 ### Testing and limitations
+- Backend automated tests passed.
+- React production build completed successfully.
+- Verified the live API health endpoint returns HTTP 200.
+- Verified protected endpoints reject unauthenticated requests with HTTP 401.
+- Tested registration, login, logout, study sessions, and chat on the deployed website.
+- Verified Simon Service is deployed and its protected API responds correctly.
 
 - Use `cd service && npm install && npm test` to run endpoint tests, and `npm run build` in the repository root to build React.
 - For local development, run `node service/index.js` in one terminal and `npm run dev` in another.

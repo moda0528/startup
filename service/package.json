@@ -1,0 +1,15 @@
+{
+  "name": "studymatch-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "StudyMatch Express service for CS 260",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2"
+  }
+}

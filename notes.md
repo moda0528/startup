@@ -80,3 +80,14 @@ Interesting things I have learned about AWS
 - `localStorage` keeps demo accounts, study sessions, and messages after a page refresh.
 - `setInterval` can simulate incoming WebSocket chat messages until a real backend exists.
 - I mocked login, account creation, session membership, group messages, and rotating study quotes without a server.
+
+## Service (Node.js and Express)
+
+- Express lets Node.js respond to HTTP requests through endpoints such as `/api/sessions`.
+- `express.json()` reads JSON sent in requests, while `express.static()` serves the built frontend.
+- The React frontend calls the backend using `fetch`, and Vite's proxy sends local `/api` calls to port 4000.
+- `cookie-parser` reads a login token from an HTTP-only cookie; protected routes check the token.
+- `bcryptjs` hashes passwords before storage and checks them at login without saving plaintext passwords.
+- The Dashboard fetches a motivational quote from a third-party API.
+- The backend currently holds data in memory, so restarting Node clears accounts and sessions until we add a database.
+- The service has its own `package.json` and requires a different deployment script from the React-only deliverable.

@@ -1,39 +1,38 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { shortCourse } from '../data.js';
 
-const REPLIES = [
-  'Does anyone want to review the practice problems?',
-  'I can bring my notes to the study session.',
-  'Thanks! Looking forward to studying together.',
-  'Let’s compare answers when we meet.',
-];
-
-export default function Chat({ user, sessions, messages, onSend, onSimulatedMessage }) {
+export default function Chat({ user, sessions, messages, onSend, onLoadMessages }) {
   const [params, setParams] = useSearchParams();
   const [draft, setDraft] = useState('');
-  const replyIndex = useRef(0);
+  const [busy, setBusy] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const mine = user ? sessions.filter((session) => session.members.includes(user.email)) : [];
   const selectedId = params.get('session');
   const active = mine.find((session) => session.id === selectedId) || mine[0];
-  const conversation = active ? (messages[active.id] || []) : [];
+  const conversation = active ? messages[active.id] || [] : [];
 
-  // Mock an occasional incoming WebSocket message while the chat page is open.
+  // Poll the Express API to see messages from other browser sessions.
+  // A later deliverable will replace polling with real WebSockets.
   useEffect(() => {
     if (!active || !user) return undefined;
-    const interval = setInterval(() => {
-      const from = replyIndex.current % 2 === 0 ? 'Alex' : 'Sam';
-      onSimulatedMessage(active.id, from, REPLIES[replyIndex.current % REPLIES.length]);
-      replyIndex.current += 1;
-    }, 25000);
-    return () => clearInterval(interval);
-  }, [active?.id, user?.email, onSimulatedMessage]);
+    let current = true;
+    const refresh = () => onLoadMessages(active.id)
+      .then(() => { if (current) setLoadError(''); })
+      .catch((error) => { if (current) setLoadError(error.message); });
+    refresh();
+    const timer = setInterval(refresh, 10000);
+    return () => { current = false; clearInterval(timer); };
+  }, [active?.id, user?.email, onLoadMessages]);
 
-  function send(event) {
+  async function send(event) {
     event.preventDefault();
-    if (!active || !draft.trim()) return;
-    onSend(active.id, draft);
-    setDraft('');
+    if (!active || !draft.trim() || busy) return;
+    setBusy(true);
+    try {
+      const success = await onSend(active.id, draft);
+      if (success) setDraft('');
+    } finally { setBusy(false); }
   }
 
   if (!user) return <main><h2>Study Group Chat</h2><p><Link to="/">Log in</Link> to chat with your study groups.</p></main>;
@@ -52,6 +51,7 @@ export default function Chat({ user, sessions, messages, onSend, onSimulatedMess
       </section>
       <section>
         <h3>Messages</h3>
+        {loadError && <p role="alert" className="text-danger">{loadError}</p>}
         <div className="messages" role="log" aria-label="Chat messages" aria-live="polite">
           {conversation.length === 0 && <p>No messages yet. Say hello!</p>}
           {conversation.map((message) => (
@@ -63,9 +63,9 @@ export default function Chat({ user, sessions, messages, onSend, onSimulatedMess
         <form className="chat-form" onSubmit={send}>
           <label htmlFor="message">Message:</label>
           <input id="message" type="text" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Type a message..." maxLength={500} required />
-          <button type="submit" className="btn btn-primary">Send</button>
+          <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? 'Sending…' : 'Send'}</button>
         </form>
-        <small className="text-muted">Demo chat: messages are stored locally. Incoming replies are simulated about every 25 seconds.</small>
+        <small className="text-muted">Messages use the Express backend. New messages are checked every 10 seconds until real WebSockets are added.</small>
       </section>
       <section>
         <h3>Group Members ({active.members.length})</h3>

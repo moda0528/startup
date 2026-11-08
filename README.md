@@ -137,16 +137,26 @@ The application uses **demo-only authentication**: passwords are not saved or ve
 
 ## 🚀 Service deliverable
 
-For this deliverable I did the following. I checked the box `[x]` and added a description for things I completed.
+For this deliverable, I replaced the React-only demo data with an Express HTTP service. These items describe the implemented code; I will verify the production deployment separately.
 
-- [ ] I completed the prerequisites for this deliverable (Simon deployed, GitHub link, Git commits)
-- [ ] **Node.js/Express HTTP service** - I did not complete this part of the deliverable.
-- [ ] **Static middleware for frontend** - I did not complete this part of the deliverable.
-- [ ] **Calls to third party endpoints** - I did not complete this part of the deliverable.
-- [ ] **Backend service endpoints** - I did not complete this part of the deliverable.
-- [ ] **Frontend calls service endpoints** - I did not complete this part of the deliverable.
-- [ ] **Supports registration, login, logout, and restricted endpoint** - I did not complete this part of the deliverable.
-- [ ] **Uses BCrypt to hash passwords** - I did not complete this part of the deliverable.
+- [ ] **Prerequisites** - Verify Simon **Service** is deployed at [simon.kyungju.click](https://simon.kyungju.click), the GitHub link is on StudyMatch's home page, and the repository has enough genuine Git commits.
+- [x] **Node.js/Express HTTP service** - Added `service/index.js` and a separate `service/package.json`. The backend listens on port 4000 by default and accepts a command-line port argument.
+- [x] **Static middleware for frontend** - Express serves the production Vite build using `express.static('public')` and returns `index.html` for React Router URLs.
+- [x] **Calls to third-party endpoints** - The Dashboard uses browser `fetch` to request a real motivational quote from the DummyJSON `/quotes/random` API, with error handling and a New Quote button.
+- [x] **Backend service endpoints** - Added JSON endpoints for authentication, courses, study sessions, membership, and group chat messages. The server also exposes `/api/health`.
+- [x] **Frontend calls service endpoints** - React uses `fetch('/api/...')` to retrieve and change data through Express. `vite.config.js` proxies `/api` to `localhost:4000` during local development.
+- [x] **Registration, login, logout, restricted endpoint** - Users can register and log in with a password; Express issues an HTTP-only authentication cookie, verifies it for protected endpoints, and invalidates it on logout. For example, `/api/auth/me`, `/api/courses`, and session-chat endpoints require login.
+- [x] **BCrypt hashing** - The backend calls `bcrypt.hash(password, 10)` when creating an account and `bcrypt.compare` at login; plaintext passwords aren't saved as account records.
+
+### Testing and limitations
+
+- Use `cd service && npm install && npm test` to run endpoint tests, and `npm run build` in the repository root to build React.
+- For local development, run `node service/index.js` in one terminal and `npm run dev` in another.
+- The app currently stores accounts, sessions, and messages **in server memory**, as in the course's Simon Service example. Restarting the backend resets these records. MongoDB storage will be a later deliverable.
+- The live quote depends on the external API being reachable. Chat updates are fetched periodically; real WebSocket delivery is a later deliverable.
+- To deploy both applications and the backend, use the new `deployService.sh` instead of the previous React-only deployment script. Test all endpoints on the deployed site after deployment.
+
+[StudyMatch](https://startup.kyungju.click) | [GitHub repository](https://github.com/moda0528/startup)
 
 ## 🚀 DB deliverable
 

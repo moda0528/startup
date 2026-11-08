@@ -11,13 +11,13 @@ export default function Sessions({ user, sessions, onCreate, onLeave }) {
   const [otherCourse, setOtherCourse] = useState('');
   const mine = user ? sessions.filter((session) => session.members.includes(user.email)) : [];
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
     const selectedCourse = course === 'other' ? otherCourse.trim() : course;
     if (!selectedCourse || !date || !time || !location.trim()) return;
     if (date < dateAfter(0)) return;
-    onCreate({ course: selectedCourse, date, time, location, maxStudents });
-    setLocation('');
+    const success = await onCreate({ course: selectedCourse, date, time, location, maxStudents });
+    if (success) setLocation('');
   }
 
   return (
@@ -63,7 +63,7 @@ export default function Sessions({ user, sessions, onCreate, onLeave }) {
                     <td>{session.members.length}/{session.maxStudents}</td>
                     <td className="actions-cell">
                       <Link className="btn btn-primary btn-sm" to={`/chat?session=${session.id}`}>Chat</Link>{' '}
-                      <button type="button" className="btn btn-danger btn-sm" onClick={() => onLeave(session.id)}>
+                      <button type="button" className="btn btn-danger btn-sm" onClick={() => onLeave(session.id, session.createdBy === user.email)}>
                         {session.createdBy === user.email ? 'Delete' : 'Leave'}
                       </button>
                     </td>

@@ -2,30 +2,39 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { COURSES, displayDate, shortCourse } from '../data.js';
 
-const QUOTES = [
-  { text: 'It always seems impossible until it is done.', author: 'Nelson Mandela' },
-  { text: 'The secret of getting ahead is getting started.', author: 'Mark Twain' },
-  { text: 'It is not that I am so smart. But I stay with the questions much longer.', author: 'Albert Einstein' },
-];
-
 export default function Dashboard({ user, sessions, myCourses, onJoin, onAddCourse, onRemoveCourse }) {
   const [filter, setFilter] = useState('all');
   const [newCourse, setNewCourse] = useState('');
-  const [quoteIndex, setQuoteIndex] = useState(0);
+  const [quote, setQuote] = useState(null);
+  const [quoteError, setQuoteError] = useState('');
+  const [quoteRequest, setQuoteRequest] = useState(0);
 
-  // Mock a changing third-party motivational quote.
+  // Genuine third-party HTTP request made directly from the browser.
   useEffect(() => {
-    const interval = setInterval(() => setQuoteIndex((index) => (index + 1) % QUOTES.length), 15000);
-    return () => clearInterval(interval);
-  }, []);
+    const controller = new AbortController();
+    setQuoteError('');
+    fetch('https://dummyjson.com/quotes/random', { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((data) => {
+        if (!data.quote || !data.author) throw new Error('Unexpected response');
+        setQuote({ text: data.quote, author: data.author });
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') setQuoteError('Quote service unavailable. Try again later.');
+      });
+    return () => controller.abort();
+  }, [quoteRequest]);
 
   const availableCourses = [...new Set([...COURSES, ...sessions.map((session) => session.course)])];
   const filtered = sessions.filter((session) => filter === 'all' || session.course === filter);
 
-  function submitCourse(event) {
+  async function submitCourse(event) {
     event.preventDefault();
     if (!newCourse.trim()) return;
-    onAddCourse(newCourse);
+    await onAddCourse(newCourse);
     setNewCourse('');
   }
 
@@ -85,9 +94,11 @@ export default function Dashboard({ user, sessions, myCourses, onJoin, onAddCour
       ) : <p><Link to="/">Log in</Link> to join sessions and save your courses.</p>}
       <section>
         <h3>Study Motivation</h3>
-        <p>“{QUOTES[quoteIndex].text}”</p>
-        <p>— {QUOTES[quoteIndex].author}</p>
-        <small className="text-muted">Rotating example quotes (mock third-party service)</small>
+        {quote && <><p>“{quote.text}”</p><p>— {quote.author}</p></>}
+        {!quote && !quoteError && <p>Loading a quote…</p>}
+        {quoteError && <p role="status">{quoteError}</p>}
+        <button type="button" className="btn btn-secondary btn-sm" onClick={() => setQuoteRequest((number) => number + 1)}>New quote</button>{' '}
+        <small className="text-muted">Live quote from <a href="https://dummyjson.com/docs/quotes" target="_blank" rel="noreferrer">DummyJSON API</a></small>
       </section>
     </main>
   );

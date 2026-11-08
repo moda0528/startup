@@ -1,161 +1,127 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { BrowserRouter, NavLink, Route, Routes, useNavigate } from 'react-router-dom';
 import Login from './components/Login.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import Sessions from './components/Sessions.jsx';
 import Chat from './components/Chat.jsx';
-import { loadState, makeId, saveState } from './data.js';
+import { json, request } from './api.js';
 
 export default function App() {
-  const [data, setData] = useState(loadState);
+  const [user, setUser] = useState(null);
+  const [myCourses, setMyCourses] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  const [messages, setMessages] = useState({});
   const [notice, setNotice] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  // Save users, sessions, memberships, and messages after each change.
+  const showError = (error) => setNotice(error.message || 'An unexpected error occurred.');
+
+  const refreshSessions = useCallback(async () => {
+    const result = await request('/sessions');
+    setSessions(result.sessions);
+  }, []);
+
+  const loadMessages = useCallback(async (id) => {
+    const result = await request(`/sessions/${encodeURIComponent(id)}/messages`);
+    setMessages((current) => ({ ...current, [id]: result.messages }));
+  }, []);
+
   useEffect(() => {
-    saveState(data);
-  }, [data]);
+    let active = true;
+    Promise.all([
+      request('/auth/me').catch((error) => {
+        if (error.message.includes('401') || error.message === 'Please log in first.') return null;
+        throw error;
+      }),
+      request('/sessions'),
+    ])
+      .then(([account, sessionData]) => {
+        if (!active) return;
+        setUser(account?.user || null);
+        setMyCourses(account?.courses || []);
+        setSessions(sessionData.sessions);
+      })
+      .catch((error) => { if (active) setNotice(`Could not connect to backend: ${error.message}`); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
-  // Auto-dismiss status messages; the cleanup prevents stale timers.
+  // Refresh sessions periodically so changes from another browser appear.
+  useEffect(() => {
+    const timer = setInterval(() => refreshSessions().catch(() => {}), 15000);
+    return () => clearInterval(timer);
+  }, [refreshSessions]);
+
   useEffect(() => {
     if (!notice) return undefined;
-    const timer = setTimeout(() => setNotice(''), 5000);
+    const timer = setTimeout(() => setNotice(''), 6000);
     return () => clearTimeout(timer);
   }, [notice]);
 
-  const user = data.user;
-  const myCourses = user ? data.coursesByUser[user.email] || [] : [];
-
-  function signIn({ name, email, create }) {
-    const normalizedEmail = email.trim().toLowerCase();
-    const existing = data.accounts[normalizedEmail];
-    const account = existing || {
-      email: normalizedEmail,
-      name: name.trim() || normalizedEmail.split('@')[0],
-    };
-    // Mock authentication: passwords are never saved or verified.
-    setData((previous) => ({
-      ...previous,
-      user: account,
-      accounts: { ...previous.accounts, [normalizedEmail]: account },
-    }));
-    setNotice(create ? `Demo account ready. Welcome, ${account.name}!` : `Welcome back, ${account.name}!`);
+  async function signIn({ name, email, password, create }) {
+    try {
+      const result = await json('POST', create ? '/auth/create' : '/auth/login', { name, email, password });
+      setUser(result.user);
+      setMyCourses(result.courses);
+      setMessages({});
+      setNotice(`Welcome, ${result.user.name}!`);
+      return true;
+    } catch (error) { showError(error); throw error; }
   }
 
-  function signOut() {
-    setData((previous) => ({ ...previous, user: null }));
-    setNotice('You signed out of the demo.');
+  async function signOut() {
+    try {
+      await request('/auth/logout', { method: 'DELETE' });
+      setUser(null);
+      setMyCourses([]);
+      setMessages({});
+      setNotice('You have logged out.');
+    } catch (error) { showError(error); throw error; }
   }
 
-  function addCourse(course) {
-    if (!user) return;
-    const normalized = course.trim().toUpperCase();
-    if (!normalized) return;
-    setData((previous) => {
-      const previousCourses = previous.coursesByUser[user.email] || [];
-      if (previousCourses.includes(normalized)) return previous;
-      return {
-        ...previous,
-        coursesByUser: {
-          ...previous.coursesByUser,
-          [user.email]: [...previousCourses, normalized],
-        },
-      };
-    });
+  async function addCourse(course) {
+    try {
+      const result = await json('POST', '/courses', { course });
+      setMyCourses(result.courses);
+      setNotice('Course saved to your account.');
+    } catch (error) { showError(error); }
   }
-
-  function removeCourse(course) {
-    if (!user) return;
-    setData((previous) => ({
-      ...previous,
-      coursesByUser: {
-        ...previous.coursesByUser,
-        [user.email]: (previous.coursesByUser[user.email] || []).filter((item) => item !== course),
-      },
-    }));
+  async function removeCourse(course) {
+    try {
+      const result = await request(`/courses/${encodeURIComponent(course)}`, { method: 'DELETE' });
+      setMyCourses(result.courses);
+    } catch (error) { showError(error); }
   }
-
-  function joinSession(id) {
-    if (!user) {
-      setNotice('Log in on the Home page before joining a session.');
-      return;
-    }
-    const session = data.sessions.find((item) => item.id === id);
-    if (!session) return;
-    if (session.members.includes(user.email)) {
-      setNotice('You are already in this study session.');
-      return;
-    }
-    if (session.members.length >= session.maxStudents) {
-      setNotice('This session is full.');
-      return;
-    }
-    setData((previous) => ({
-      ...previous,
-      sessions: previous.sessions.map((item) => item.id === id
-        ? { ...item, members: [...item.members, user.email] }
-        : item),
-    }));
-    setNotice('You joined the study session. Open Chat to send a message!');
+  async function joinSession(id) {
+    try {
+      await request(`/sessions/${encodeURIComponent(id)}/join`, { method: 'POST' });
+      await refreshSessions();
+      setNotice('You joined the session! Open Chat to send a message.');
+    } catch (error) { showError(error); }
   }
-
-  function createSession({ course, date, time, location, maxStudents }) {
-    if (!user) {
-      setNotice('Log in before creating a session.');
-      return;
-    }
-    const session = {
-      id: makeId(), course: course.trim(), date, time,
-      location: location.trim(), maxStudents: Number(maxStudents),
-      members: [user.email], createdBy: user.email,
-    };
-    setData((previous) => ({ ...previous, sessions: [...previous.sessions, session] }));
-    setNotice('Study session created! You are its first member.');
+  async function createSession(payload) {
+    try {
+      await json('POST', '/sessions', payload);
+      await refreshSessions();
+      setNotice('New study session created.');
+      return true;
+    } catch (error) { showError(error); return false; }
   }
-
-  function leaveSession(id) {
-    if (!user) return;
-    setData((previous) => {
-      const session = previous.sessions.find((item) => item.id === id);
-      if (!session) return previous;
-      if (session.createdBy === user.email) {
-        const { [id]: deletedMessages, ...remainingMessages } = previous.messages;
-        return {
-          ...previous,
-          sessions: previous.sessions.filter((item) => item.id !== id),
-          messages: remainingMessages,
-        };
-      }
-      return {
-        ...previous,
-        sessions: previous.sessions.map((item) => item.id === id
-          ? { ...item, members: item.members.filter((email) => email !== user.email) }
-          : item),
-      };
-    });
-    const original = data.sessions.find((item) => item.id === id);
-    setNotice(original?.createdBy === user.email ? 'You deleted your session.' : 'You left the session.');
+  async function leaveSession(id, isOwner) {
+    try {
+      await request(`/sessions/${encodeURIComponent(id)}${isOwner ? '' : '/leave'}`, {
+        method: isOwner ? 'DELETE' : 'POST',
+      });
+      await refreshSessions();
+      setNotice(isOwner ? 'Session deleted.' : 'You left the session.');
+    } catch (error) { showError(error); }
   }
-
-  function appendMessage(sessionId, from, text) {
-    const cleanText = text.trim();
-    if (!cleanText) return;
-    const message = { id: makeId(), from, text: cleanText.slice(0, 500), time: new Date().toISOString() };
-    setData((previous) => {
-      if (!previous.sessions.some((session) => session.id === sessionId)) return previous;
-      return {
-        ...previous,
-        messages: {
-          ...previous.messages,
-          [sessionId]: [...(previous.messages[sessionId] || []), message],
-        },
-      };
-    });
-  }
-
-  function sendMessage(sessionId, text) {
-    const session = data.sessions.find((item) => item.id === sessionId);
-    if (!user || !session?.members.includes(user.email)) return;
-    appendMessage(sessionId, user.email, text);
+  async function sendMessage(id, text) {
+    try {
+      await json('POST', `/sessions/${encodeURIComponent(id)}/messages`, { text });
+      await loadMessages(id);
+      return true;
+    } catch (error) { showError(error); return false; }
   }
 
   return (
@@ -172,31 +138,29 @@ export default function App() {
         </nav>
         {user && <div className="header-account"><span>Hi, {user.name}!</span><LogoutButton onLogout={signOut} /></div>}
       </header>
-
       {notice && <div role="status" className="notice">{notice}</div>}
-
-      <Routes>
-        <Route path="/" element={<Login user={user} onLogin={signIn} />} />
-        <Route path="/dashboard" element={
-          <Dashboard user={user} sessions={data.sessions} myCourses={myCourses}
-            onJoin={joinSession} onAddCourse={addCourse} onRemoveCourse={removeCourse} />
-        } />
-        <Route path="/sessions" element={
-          <Sessions user={user} sessions={data.sessions} onCreate={createSession} onLeave={leaveSession} />
-        } />
-        <Route path="/chat" element={
-          <Chat user={user} sessions={data.sessions} messages={data.messages}
-            onSend={sendMessage} onSimulatedMessage={appendMessage} />
-        } />
-        <Route path="*" element={<main><h2>Page not found</h2><NavLink to="/">Return home</NavLink></main>} />
-      </Routes>
-
+      {loading ? <main><p>Connecting to StudyMatch service…</p></main> : (
+        <Routes>
+          <Route path="/" element={<Login user={user} onLogin={signIn} />} />
+          <Route path="/dashboard" element={
+            <Dashboard user={user} sessions={sessions} myCourses={myCourses}
+              onJoin={joinSession} onAddCourse={addCourse} onRemoveCourse={removeCourse} />
+          } />
+          <Route path="/sessions" element={
+            <Sessions user={user} sessions={sessions} onCreate={createSession} onLeave={leaveSession} />
+          } />
+          <Route path="/chat" element={
+            <Chat user={user} sessions={sessions} messages={messages}
+              onSend={sendMessage} onLoadMessages={loadMessages} />
+          } />
+          <Route path="*" element={<main><h2>Page not found</h2><NavLink to="/">Return home</NavLink></main>} />
+        </Routes>
+      )}
       <footer>
         <hr />
-        <span>Kyungju Jo</span>
-        <br />
+        <span>Kyungju Jo</span><br />
         <a href="https://github.com/moda0528/startup" target="_blank" rel="noreferrer">GitHub repository</a>
-        <p className="demo-note">StudyMatch demo: data is saved only in your browser. No real accounts or server chat yet.</p>
+        <p className="demo-note">Accounts, courses, study sessions, and messages are handled by the Express server. Records reset if the service restarts; the database comes later.</p>
       </footer>
     </BrowserRouter>
   );
@@ -204,5 +168,10 @@ export default function App() {
 
 function LogoutButton({ onLogout }) {
   const navigate = useNavigate();
-  return <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => { onLogout(); navigate('/'); }}>Log out</button>;
+  const [busy, setBusy] = useState(false);
+  async function logout() {
+    setBusy(true);
+    try { await onLogout(); navigate('/'); } finally { setBusy(false); }
+  }
+  return <button type="button" className="btn btn-outline-secondary btn-sm" disabled={busy} onClick={logout}>Log out</button>;
 }

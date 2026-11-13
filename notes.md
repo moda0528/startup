@@ -91,3 +91,10 @@ Interesting things I have learned about AWS
 - The Dashboard fetches a motivational quote from a third-party API.
 - The backend currently holds data in memory, so restarting Node clears accounts and sessions until we add a database.
 - The service has its own `package.json` and requires a different deployment script from the React-only deliverable.
+
+## Database (MongoDB)
+
+- MongoDB stores data permanently instead of using temporary server memory.
+- The MongoDB Node.js driver connects the backend to Atlas.
+- MongoClient connects to the database and ping checks the connection.
+- Database credentials belong in an ignored configuration file.

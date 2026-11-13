@@ -3,3 +3,6 @@ dist/
 .DS_Store
 build/
 service/node_modules/
+service/dbConfig.json
+service/.env
+.env

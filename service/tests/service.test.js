@@ -1,12 +1,18 @@
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const app = require('../index.js');
+const bcrypt = require('bcryptjs');
+const { connectDatabase, getDatabase, closeDatabase } = require('../database.js');
+const { ensureIndexes } = require('../userStore.js');
 
 let server;
 let origin;
 let cookie;
+let testEmail;
 
 before(async () => {
+  await connectDatabase();
+  await ensureIndexes();
   server = await new Promise((resolve) => {
     const running = app.listen(0, '127.0.0.1', () => resolve(running));
   });
@@ -14,7 +20,10 @@ before(async () => {
 });
 
 after(async () => {
-  await new Promise((resolve) => server.close(resolve));
+  if (server) await new Promise((resolve) => server.close(resolve));
+  // Remove only this test's disposable account; never clear real application data.
+  if (testEmail) await getDatabase().collection('users').deleteOne({ email: testEmail });
+  await closeDatabase();
 });
 
 async function api(path, method = 'GET', body, authenticated = false) {
@@ -35,7 +44,8 @@ test('StudyMatch Express service: health, auth, sessions, and chat', async () =>
   result = await api('/auth/me');
   assert.equal(result.response.status, 401, 'protected endpoint must reject guests');
 
-  const email = `learner-${Date.now()}@example.com`;
+  const email = `learner-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+  testEmail = email;
   const password = 'Test-Password-2026!';
   result = await api('/auth/create', 'POST', { email, name: 'Learner', password });
   assert.equal(result.response.status, 201);
@@ -44,6 +54,17 @@ test('StudyMatch Express service: health, auth, sessions, and chat', async () =>
   cookie = result.response.headers.get('set-cookie').split(';')[0];
   assert.match(result.response.headers.get('set-cookie'), /httponly/i);
 
+  // Verify accounts are actually persisted in Atlas and passwords are hashed.
+  const savedUser = await getDatabase().collection('users').findOne({ email });
+  assert.ok(savedUser, 'MongoDB must contain the account');
+  assert.notEqual(savedUser.passwordHash, password, 'do not store plaintext passwords');
+  assert.equal(await bcrypt.compare(password, savedUser.passwordHash), true);
+  assert.ok(savedUser.authTokenHash, 'login session is stored in MongoDB');
+  assert.notEqual(savedUser.authTokenHash, cookie.split('=')[1], 'do not store plaintext tokens');
+
+  result = await api('/auth/create', 'POST', { email, name: 'Duplicate', password });
+  assert.equal(result.response.status, 409, 'duplicate emails must be rejected');
+
   result = await api('/auth/me', 'GET', undefined, true);
   assert.equal(result.response.status, 200);
   assert.equal(result.data.user.name, 'Learner');
@@ -51,6 +72,7 @@ test('StudyMatch Express service: health, auth, sessions, and chat', async () =>
   result = await api('/courses', 'POST', { course: 'CS 235' }, true);
   assert.equal(result.response.status, 200);
   assert.deepEqual(result.data.courses, ['CS 235']);
+  assert.deepEqual((await getDatabase().collection('users').findOne({ email })).courses, ['CS 235']);
 
   result = await api('/sessions', 'POST', {
     course: 'CS 235', date: '2099-01-01', time: '15:00', location: 'Library', maxStudents: 5,
@@ -70,6 +92,7 @@ test('StudyMatch Express service: health, auth, sessions, and chat', async () =>
   assert.equal(result.response.status, 204);
   result = await api('/auth/me', 'GET', undefined, true);
   assert.equal(result.response.status, 401, 'logout must invalidate the token');
+  assert.equal((await getDatabase().collection('users').findOne({ email })).authTokenHash, undefined);
 
   result = await api('/auth/login', 'POST', { email, password: 'wrong-password' });
   assert.equal(result.response.status, 401);

@@ -1,16 +1,16 @@
-// StudyMatch HTTP service. This deliverable stores records in server memory;
-// the database deliverable will replace these arrays with persistent storage.
+// StudyMatch HTTP service. User accounts, courses and login tokens are stored
+// in MongoDB. Sessions and messages will be migrated in the next step.
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const crypto = require('node:crypto');
 const path = require('node:path');
+const { connectDatabase } = require('./database');
+const userStore = require('./userStore');
 
 const app = express();
 const port = Number(process.argv[2] || process.env.PORT || 4000);
 const TOKEN_COOKIE = 'studymatchToken';
-const users = new Map();               // email -> { email, name, passwordHash, courses }
-const tokens = new Map();              // random token -> email
 const sessions = new Map();            // session ID -> session object
 const messages = new Map();            // session ID -> message array
 
@@ -52,25 +52,30 @@ function normalizeEmail(value) {
 function secureCookie(req) {
   return req.secure || req.get('x-forwarded-proto') === 'https';
 }
-function createToken(req, res, user) {
-  // New cookie invalidates old session for the account in this demo.
-  for (const [token, email] of tokens) if (email === user.email) tokens.delete(token);
+const LOGIN_DURATION_MS = 1000 * 60 * 60 * 24 * 7;
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+async function createToken(req, res, user) {
   const token = crypto.randomBytes(32).toString('hex');
-  tokens.set(token, user.email);
+  await userStore.storeLogin(user.email, hashToken(token), new Date(Date.now() + LOGIN_DURATION_MS));
   res.cookie(TOKEN_COOKIE, token, {
     httpOnly: true, secure: secureCookie(req), sameSite: 'lax',
-    maxAge: 1000 * 60 * 60 * 24 * 7, path: '/',
+    maxAge: LOGIN_DURATION_MS, path: '/',
   });
 }
-function findAuthenticatedUser(req) {
-  const email = tokens.get(req.cookies?.[TOKEN_COOKIE]);
-  return email ? users.get(email) : undefined;
+async function findAuthenticatedUser(req) {
+  const token = req.cookies?.[TOKEN_COOKIE];
+  if (typeof token !== 'string' || !/^[a-f0-9]{64}$/.test(token)) return null;
+  return userStore.findByTokenHash(hashToken(token));
 }
-function requireAuth(req, res, next) {
-  const user = findAuthenticatedUser(req);
-  if (!user) return res.status(401).json({ msg: 'Please log in first.' });
-  req.user = user;
-  next();
+async function requireAuth(req, res, next) {
+  try {
+    const user = await findAuthenticatedUser(req);
+    if (!user) return res.status(401).json({ msg: 'Please log in first.' });
+    req.user = user;
+    next();
+  } catch (error) { next(error); }
 }
 function inSession(session, email) {
   return session && session.members.includes(email);
@@ -93,11 +98,16 @@ api.post('/auth/create', async (req, res, next) => {
     if (!/^\S+@\S+\.\S+$/.test(email) || email.length > 254 || !validText(name, 60) || typeof password !== 'string' || password.length < 8 || password.length > 128) {
       return res.status(400).json({ msg: 'Enter a name, valid email, and password with 8–128 characters.' });
     }
-    if (users.has(email)) return res.status(409).json({ msg: 'An account with this email already exists.' });
+    if (await userStore.findByEmail(email)) return res.status(409).json({ msg: 'An account with this email already exists.' });
     const passwordHash = await bcrypt.hash(password, 10);
     const user = { email, name: name.trim(), passwordHash, courses: [] };
-    users.set(email, user);
-    createToken(req, res, user);
+    try {
+      await userStore.insertUser(user);
+    } catch (error) {
+      if (error.code === 11000) return res.status(409).json({ msg: 'An account with this email already exists.' });
+      throw error;
+    }
+    await createToken(req, res, user);
     res.status(201).json({ user: publicUser(user), courses: user.courses });
   } catch (error) { next(error); }
 });
@@ -106,38 +116,46 @@ api.post('/auth/login', async (req, res, next) => {
   try {
     const email = normalizeEmail(req.body?.email);
     const password = req.body?.password;
-    const user = users.get(email);
+    const user = await userStore.findByEmail(email);
     if (!user || typeof password !== 'string' || !(await bcrypt.compare(password, user.passwordHash))) {
       return res.status(401).json({ msg: 'Incorrect email or password.' });
     }
-    createToken(req, res, user);
+    await createToken(req, res, user);
     res.json({ user: publicUser(user), courses: user.courses });
   } catch (error) { next(error); }
 });
 
 api.get('/auth/me', requireAuth, (req, res) => {
-  res.json({ user: publicUser(req.user), courses: req.user.courses });
+  res.json({ user: publicUser(req.user), courses: req.user.courses || [] });
 });
 
-api.delete('/auth/logout', (req, res) => {
-  tokens.delete(req.cookies?.[TOKEN_COOKIE]);
-  res.clearCookie(TOKEN_COOKIE, { path: '/' });
-  res.status(204).end();
+api.delete('/auth/logout', async (req, res, next) => {
+  try {
+    const token = req.cookies?.[TOKEN_COOKIE];
+    if (typeof token === 'string' && /^[a-f0-9]{64}$/.test(token)) {
+      await userStore.clearLogin(hashToken(token));
+    }
+    res.clearCookie(TOKEN_COOKIE, { path: '/' });
+    res.status(204).end();
+  } catch (error) { next(error); }
 });
 
 api.get('/courses', requireAuth, (req, res) => {
-  res.json({ courses: req.user.courses });
+  res.json({ courses: req.user.courses || [] });
 });
-api.post('/courses', requireAuth, (req, res) => {
-  const course = req.body?.course;
-  if (!validText(course, 80)) return res.status(400).json({ msg: 'Enter a valid course name.' });
-  const name = course.trim().toUpperCase();
-  if (!req.user.courses.includes(name)) req.user.courses.push(name);
-  res.json({ courses: req.user.courses });
+api.post('/courses', requireAuth, async (req, res, next) => {
+  try {
+    const course = req.body?.course;
+    if (!validText(course, 80)) return res.status(400).json({ msg: 'Enter a valid course name.' });
+    const courses = await userStore.addCourse(req.user.email, course.trim().toUpperCase());
+    res.json({ courses });
+  } catch (error) { next(error); }
 });
-api.delete('/courses/:course', requireAuth, (req, res) => {
-  req.user.courses = req.user.courses.filter((course) => course !== req.params.course);
-  res.json({ courses: req.user.courses });
+api.delete('/courses/:course', requireAuth, async (req, res, next) => {
+  try {
+    const courses = await userStore.removeCourse(req.user.email, req.params.course);
+    res.json({ courses });
+  } catch (error) { next(error); }
 });
 
 api.get('/sessions', (_req, res) => {
@@ -217,6 +235,12 @@ app.use((err, _req, res, _next) => {
 app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 if (require.main === module) {
-  app.listen(port, () => console.log(`StudyMatch service listening on port ${port}`));
+  connectDatabase()
+    .then(() => userStore.ensureIndexes())
+    .then(() => app.listen(port, () => console.log(`StudyMatch service listening on port ${port}`)))
+    .catch((error) => {
+      console.error('Database startup failed:', error.message);
+      process.exitCode = 1;
+    });
 }
 module.exports = app;

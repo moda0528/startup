@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const { connectDatabase, getDatabase, closeDatabase } = require('../database.js');
 const { ensureIndexes } = require('../userStore.js');
 const sessionStore = require('../sessionStore.js');
+const messageStore = require('../messageStore.js');
 
 let server;
 let origin;
@@ -17,6 +18,7 @@ before(async () => {
   await connectDatabase();
   await ensureIndexes();
   await sessionStore.ensureIndexes();
+  await messageStore.ensureIndexes();
   server = await new Promise((resolve) => {
     const running = app.listen(0, '127.0.0.1', () => resolve(running));
   });
@@ -26,7 +28,10 @@ before(async () => {
 after(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
   // Remove only test records. Never clear real application data.
-  if (testSessionId) await getDatabase().collection('sessions').deleteOne({ id: testSessionId });
+  if (testSessionId) {
+    await getDatabase().collection('messages').deleteMany({ sessionId: testSessionId });
+    await getDatabase().collection('sessions').deleteOne({ id: testSessionId });
+  }
   if (testEmail) await getDatabase().collection('users').deleteOne({ email: testEmail });
   if (testParticipantEmail) await getDatabase().collection('users').deleteOne({ email: testParticipantEmail });
   await closeDatabase();
@@ -115,16 +120,32 @@ test('StudyMatch Express service: health, auth, sessions, and chat', async () =>
   assert.ok(!(await getDatabase().collection('sessions').findOne({ id })).members.includes(participantEmail), 'leaving is persisted');
 
 
+  // A non-member may neither read nor send messages.
+  result = await api(`/sessions/${id}/messages`, 'GET', undefined, participantCookie);
+  assert.equal(result.response.status, 403, 'members who left must not read the chat');
+  result = await api(`/sessions/${id}/messages`, 'POST', { text: 'Unauthorized!' }, participantCookie);
+  assert.equal(result.response.status, 403, 'members who left must not post');
+
   result = await api(`/sessions/${id}/messages`, 'POST', { text: 'Hello group!' }, true);
   assert.equal(result.response.status, 201);
+  const messageId = result.data.message.id;
+  const savedMessage = await getDatabase().collection('messages').findOne({ id: messageId });
+  assert.ok(savedMessage, 'chat message must be saved in MongoDB');
+  assert.equal(savedMessage.sessionId, id);
+  assert.equal(savedMessage.from, email);
+  assert.equal(savedMessage.text, 'Hello group!');
 
   result = await api(`/sessions/${id}/messages`, 'GET', undefined, true);
   assert.equal(result.response.status, 200);
+  assert.equal(result.data.messages.length, 1);
   assert.equal(result.data.messages[0].text, 'Hello group!');
+  assert.equal(result.data.messages[0].id, messageId);
+  assert.equal(Object.hasOwn(result.data.messages[0], '_id'), false, 'MongoDB internals must stay private');
 
   result = await api(`/sessions/${id}`, 'DELETE', undefined, true);
   assert.equal(result.response.status, 204);
   assert.equal(await getDatabase().collection('sessions').findOne({ id }), null, 'deletion is persisted');
+  assert.equal(await getDatabase().collection('messages').countDocuments({ sessionId: id }), 0, 'deleted sessions must not leave orphaned chat records');
 
 
   result = await api('/auth/logout', 'DELETE', undefined, true);

@@ -1,5 +1,5 @@
-// StudyMatch HTTP service. Accounts, courses, login tokens and study sessions
-// are stored in MongoDB. Chat messages will be migrated next.
+// StudyMatch HTTP service. Accounts, courses, login tokens, study sessions
+// and chat messages are stored in MongoDB.
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
@@ -8,11 +8,11 @@ const path = require('node:path');
 const { connectDatabase } = require('./database');
 const userStore = require('./userStore');
 const sessionStore = require('./sessionStore');
+const messageStore = require('./messageStore');
 
 const app = express();
 const port = Number(process.argv[2] || process.env.PORT || 4000);
 const TOKEN_COOKIE = 'studymatchToken';
-const messages = new Map();            // session ID -> message array
 
 function dateAfter(days) {
   const date = new Date();
@@ -25,13 +25,15 @@ const exampleSessions = [
   { id: 'sample-260', course: 'CS 260 - Web Programming', date: dateAfter(3), time: '15:00', location: 'Talmage Building', maxStudents: 6, members: ['alex@example.com', 'sam@example.com', 'linus@example.com', 'annie@example.com'], createdBy: 'sam@example.com' },
   { id: 'sample-math', course: 'MATH 112 - Calculus', date: dateAfter(4), time: '17:00', location: 'Library', maxStudents: 5, members: ['alex@example.com', 'annie@example.com'], createdBy: 'annie@example.com' },
 ];
-messages.set('sample-235', [
-  { id: 'intro-1', from: 'Alex', text: 'Are we studying chapter 5?', time: new Date().toISOString() },
-  { id: 'intro-2', from: 'Sam', text: "I'll be there!", time: new Date().toISOString() },
-]);
-messages.set('sample-260', [
-  { id: 'intro-3', from: 'Alex', text: 'Anyone want to review React Router?', time: new Date().toISOString() },
-]);
+const exampleMessages = {
+  'sample-235': [
+    { id: 'intro-1', from: 'Alex', text: 'Are we studying chapter 5?', time: new Date().toISOString() },
+    { id: 'intro-2', from: 'Sam', text: "I'll be there!", time: new Date().toISOString() },
+  ],
+  'sample-260': [
+    { id: 'intro-3', from: 'Alex', text: 'Anyone want to review React Router?', time: new Date().toISOString() },
+  ],
+};
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
@@ -179,8 +181,6 @@ api.post('/sessions', requireAuth, async (req, res, next) => {
       maxStudents: Number(maxStudents), members: [req.user.email], createdBy: req.user.email,
     };
     await sessionStore.createSession(session);
-    // Existing chat storage remains temporary until the next commit.
-    messages.set(session.id, []);
     res.status(201).json({ session });
   } catch (error) { next(error); }
 });
@@ -214,7 +214,7 @@ api.delete('/sessions/:id', requireAuth, async (req, res, next) => {
     if (session.createdBy !== req.user.email) return res.status(403).json({ msg: 'Only the session creator can delete it.' });
     const removed = await sessionStore.deleteSession(session.id, req.user.email);
     if (!removed) return res.status(404).json({ msg: 'Study session not found.' });
-    messages.delete(session.id);
+    await messageStore.deleteForSession(session.id);
     res.status(204).end();
   } catch (error) { next(error); }
 });
@@ -224,7 +224,7 @@ api.get('/sessions/:id/messages', requireAuth, async (req, res, next) => {
     const session = await sessionFromRequest(req, res);
     if (!session) return;
     if (!inSession(session, req.user.email)) return res.status(403).json({ msg: 'Join this session to read its chat.' });
-    res.json({ messages: messages.get(session.id) || [] });
+    res.json({ messages: await messageStore.listMessages(session.id) });
   } catch (error) { next(error); }
 });
 api.post('/sessions/:id/messages', requireAuth, async (req, res, next) => {
@@ -235,9 +235,7 @@ api.post('/sessions/:id/messages', requireAuth, async (req, res, next) => {
     const text = req.body?.text;
     if (!validText(text, 500)) return res.status(400).json({ msg: 'Message must be between 1 and 500 characters.' });
     const message = { id: crypto.randomUUID(), from: req.user.email, text: text.trim(), time: new Date().toISOString() };
-    const conversation = messages.get(session.id) || [];
-    conversation.push(message);
-    messages.set(session.id, conversation);
+    await messageStore.addMessage(session.id, message);
     res.status(201).json({ message });
   } catch (error) { next(error); }
 });
@@ -256,7 +254,9 @@ if (require.main === module) {
   connectDatabase()
     .then(() => userStore.ensureIndexes())
     .then(() => sessionStore.ensureIndexes())
+    .then(() => messageStore.ensureIndexes())
     .then(() => sessionStore.seedSamples(exampleSessions))
+    .then(() => messageStore.seedSamples(exampleMessages))
     .then(() => app.listen(port, () => console.log(`StudyMatch service listening on port ${port}`)))
     .catch((error) => {
       console.error('Database startup failed:', error.message);

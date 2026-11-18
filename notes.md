@@ -98,3 +98,8 @@ Interesting things I have learned about AWS
 - The MongoDB Node.js driver connects the backend to Atlas.
 - MongoClient connects to the database and ping checks the connection.
 - Database credentials belong in an ignored configuration file.
+- MongoDB Atlas stores data even after the backend restarts.
+- MongoDB collections store users, sessions, and chat messages.
+- Express uses the MongoDB driver to read and write data.
+- BCrypt hashes passwords before storing them in the database.
+- MongoDB Atlas requires the server's IP address to be allowed.

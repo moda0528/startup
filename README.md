@@ -168,11 +168,21 @@ I successfully deployed the application to AWS and tested the frontend and backe
 
 ## 🚀 DB deliverable
 
-For this deliverable I did the following. I checked the box `[x]` and added a description for things I completed.
+## 🚀 DB deliverable
 
-- [ ] I completed the prerequisites for this deliverable (Simon deployed, GitHub link, Git commits)
-- [ ] **Stores data in MongoDB** - I did not complete this part of the deliverable.
-- [ ] **Stores credentials in MongoDB** - I did not complete this part of the deliverable.
+For this deliverable, I connected StudyMatch to MongoDB Atlas to store user accounts and application data permanently.
+
+- [x] **Prerequisites** - Deployed Simon DB, added my GitHub link, and committed my development progress.
+- [x] **Stores data in MongoDB** - Study sessions, student memberships, courses, and chat messages are stored and retrieved using MongoDB.
+- [x] **Stores credentials in MongoDB** - User accounts and BCrypt password hashes are stored in MongoDB. Users can register, log in, and access protected endpoints.
+
+### Testing
+
+- Successfully connected StudyMatch to MongoDB Atlas.
+- Passed all 6 backend tests.
+- Deployed StudyMatch DB to AWS.
+- Verified that study sessions and chat messages remain available after restarting the production backend.
+- Verified Simon DB stores user accounts in MongoDB.
 
 ## 🚀 WebSocket deliverable
 
